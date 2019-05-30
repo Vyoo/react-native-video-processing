@@ -31,6 +31,7 @@ import android.graphics.Matrix;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
@@ -322,6 +323,7 @@ public class Trimmer {
       int width = Integer.parseInt(mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
       int height = Integer.parseInt(mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
       int orientation = Integer.parseInt(mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
+
       // METADATA_KEY_FRAMERATE returns a float or int or might not exist
       Integer frameRate = VideoEdit.getIntFromString(mmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_FRAMERATE));
       // METADATA_KEY_VARIANT_BITRATE returns a int or might not exist
@@ -418,6 +420,52 @@ public class Trimmer {
     sizes.putInt("width", width);
     sizes.putInt("height", height);
     return sizes;
+  }
+
+  //AddedBy Ramesh
+   static void convertToMP4(ReadableMap options, final Promise promise, ReactApplicationContext ctx){
+
+  String source = options.getString("source");
+
+//      String startTime = options.getString("startTime");
+//      String endTime = options.getString("endTime");
+
+      final File tempFile = createTempFile("mp4", promise, ctx);
+
+      ArrayList<String> cmd = new ArrayList<String>();
+      cmd.add("-y"); // NOTE: OVERWRITE OUTPUT FILE
+
+      // NOTE: INPUT FILE
+      cmd.add("-i");
+      cmd.add(source);
+
+      // NOTE: PLACE ARGUMENTS FOR FFMPEG IN THIS ORDER:
+      // 1. "-i" (INPUT FILE)
+      // 2. "-ss" (START TIME)
+      // 3. "-to" (END TIME) or "-t" (TRIM TIME)
+      // OTHERWISE WE WILL LOSE ACCURACY AND WILL GET WRONG CLIPPED VIDEO
+
+//      cmd.add("-ss");
+//      cmd.add(startTime);
+//
+//      cmd.add("-to");
+//      cmd.add(endTime);
+
+      cmd.add("-preset");
+      cmd.add("ultrafast");
+      // NOTE: DO NOT CONVERT AUDIO TO SAVE TIME
+      cmd.add("-c:a");
+      cmd.add("copy");
+      // NOTE: FLAG TO CONVER "AAC" AUDIO CODEC
+      cmd.add("-strict");
+      cmd.add("-2");
+      // NOTE: OUTPUT FILE
+      cmd.add(tempFile.getPath());
+
+      executeFfmpegCommand(cmd, tempFile.getPath(), ctx, promise, " conversion error", null);
+
+   // ffmpeg -i <input> -c:v libx264 -c:a aac -movflags +faststart output.mp4
+
   }
 
   private static ReadableMap getVideoRequiredMetadata(String source, Context ctx) {
@@ -788,6 +836,7 @@ public class Trimmer {
     return getFilesDirAbsolutePath(ctx) + File.separator + FFMPEG_FILE_NAME;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public static String getSha1FromFile(final File file) {
     MessageDigest messageDigest = null;
     try {
