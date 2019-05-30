@@ -99,10 +99,10 @@ class RNVideoPlayer: RCTView {
     
     var resizeMode: NSString? {
         set {
-            guard let newValue = newValue as String? else {
+            if newValue == nil {
                 return
             }
-            self._resizeMode = AVLayerVideoGravity(rawValue: newValue)
+          self._resizeMode = AVLayerVideoGravity(rawValue: newValue as! String)
             self.playerLayer?.videoGravity = self._resizeMode
             self.setNeedsLayout()
             print("CHANGED: resizeMode \(newValue)")
@@ -152,7 +152,7 @@ class RNVideoPlayer: RCTView {
                 let floatVal = convertedValue >= 0 ? convertedValue : self._playerStartTime
                 print("CHANGED: currentTime \(floatVal)")
                 if floatVal <= self._playerEndTime && floatVal >= self._playerStartTime {
-                    self.player.seek(to: convertToCMTime(val: floatVal), toleranceBefore: .zero, toleranceAfter: .zero)
+                  self.player.seek(to: convertToCMTime(val: floatVal), toleranceBefore: CMTime.zero, toleranceAfter: CMTime.zero)
                 }
             }
         }
@@ -271,7 +271,7 @@ class RNVideoPlayer: RCTView {
                     filterView.frame.size.height = self._playerWidth
                     filterView.bounds.size.width = self._playerHeight
                     filterView.bounds.size.height = self._playerWidth
-                    rotationAngle = CGFloat.pi / 2
+                    rotationAngle = CGFloat(M_PI_2)
                 } else {
                     filterView.frame.size.width = self._playerWidth
                     filterView.frame.size.height = self._playerHeight
@@ -326,17 +326,17 @@ class RNVideoPlayer: RCTView {
     }
     
     func toBase64(image: UIImage) -> String {
-        let imageData:NSData = image.pngData()! as NSData
+      let imageData:NSData = image.pngData()! as NSData
         return imageData.base64EncodedString(options: .lineLength64Characters)
     }
     
     func convertToCMTime(val: CGFloat) -> CMTime {
-        return CMTimeMakeWithSeconds(Float64(val), preferredTimescale: Int32(NSEC_PER_SEC))
+      return CMTimeMakeWithSeconds(Float64(val), preferredTimescale: Int32(NSEC_PER_SEC))
     }
     
     func createPlayerObservers() -> Void {
         // TODO: clean obersable when View going to diesappear
-        let interval = CMTimeMakeWithSeconds(1.0, preferredTimescale: Int32(NSEC_PER_SEC))
+      let interval = CMTimeMakeWithSeconds(1.0, preferredTimescale: Int32(NSEC_PER_SEC))
         self.playerCurrentTimeObserver = self.player.addPeriodicTimeObserver(
             forInterval: interval,
             queue: nil,
@@ -375,7 +375,7 @@ class RNVideoPlayer: RCTView {
         
         if self.player == nil {
             player = AVPlayer()
-            player.volume = playerVolume.floatValue
+            player.volume = Float(self.playerVolume)
         }
         playerItem = AVPlayerItem(url: movieURL as! URL)
         player.replaceCurrentItem(with: playerItem)
@@ -416,8 +416,8 @@ class RNVideoPlayer: RCTView {
         super.willMove(toSuperview: newSuperview)
         if newSuperview == nil {
             
-            if let observer = self.playerCurrentTimeObserver {
-                self.player.removeTimeObserver(observer)
+            if self.playerCurrentTimeObserver != nil {
+                self.player.removeTimeObserver(self.playerCurrentTimeObserver)
             }
             if player != nil {
                 self.player.pause()
