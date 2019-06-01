@@ -73,21 +73,16 @@ class RNVideoPlayer: RCTView {
     resizeMode = val
   }
     
-    // props
-    var playerHeight: NSNumber? {
-        set(val) {
-            if val != nil {
-                self._playerHeight = val as! CGFloat
-                self.frame.size.height = self._playerHeight
-                self.rotate = self._rotate ? 1 : 0
-                print("CHANGED HEIGHT \(val)")
-            }
-        }
-        get {
-            return nil
-        }
+    @objc(setPlayerHeight:)
+    public func setPlayerHeight(_ playerHeight: NSNumber?) {
+      if playerHeight != nil {
+        self._playerHeight = playerHeight as! CGFloat
+        self.frame.size.height = self._playerHeight
+        self._rotate = self._rotate ? true : false
+        print("CHANGED HEIGHT \(String(describing: playerHeight))")
+      }
     }
-    
+  
     override init(frame: CGRect) {
         super.init(frame: frame)
         playerLayer = AVPlayerLayer.init(player: player)
@@ -96,220 +91,175 @@ class RNVideoPlayer: RCTView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+  
+  @objc(setResizeMode:)
+  public func setResizeMode(_ resizeMode: NSString?) {
+    guard (resizeMode as String?) != nil else {
+      return
+    }
+    self._resizeMode = AVLayerVideoGravity(rawValue: resizeMode! as String)
+    self.playerLayer?.videoGravity = self._resizeMode
+    self.setNeedsLayout()
+    print("CHANGED: resizeMode \(String(describing: resizeMode))")
+  }
+  
+  @objc(setPlayerWidth:)
+  public func setPlayerWidth(_ playerWidth: NSNumber?) {
+    if playerWidth != nil {
+      self._playerWidth = playerWidth as! CGFloat
+      self.frame.size.width = self._playerWidth
+      self._rotate = self._rotate ? true : false
+      print("CHANGED WIDTH \(String(describing: playerWidth))")
+    }
+  }
+  
+  @objc(setSource:)
+  public func setSource(_ source: NSString) {
+    self._moviePathSource = source
+    print("CHANGED source \(source)")
+    if self.gpuMovie != nil {
+      self.gpuMovie.endProcessing()
+    }
+    self.startPlayer()
+  }
+  
+  @objc(setCurrentTime:)
+  public func setCurrentTime(_ currentTime: NSNumber?) {
+    if currentTime != nil && player != nil {
+      let convertedValue = currentTime as! CGFloat
+      let floatVal = convertedValue >= 0 ? convertedValue : self._playerStartTime
+      print("CHANGED: currentTime \(floatVal)")
+      if floatVal <= self._playerEndTime && floatVal >= self._playerStartTime {
+        self.player.seek(to: convertToCMTime(val: floatVal), toleranceBefore: .zero, toleranceAfter: .zero)
+      }
+    }
+  }
+  
+  @objc(setStartTime:)
+  public func setStartTime(_ startTime: NSNumber?) {
+    if startTime == nil {
+      return
+    }
+    let convertedValue = startTime as! CGFloat
     
-    var resizeMode: NSString? {
-        set {
-            guard let newValue = newValue as String? else {
-                return
-            }
-            self._resizeMode = AVLayerVideoGravity(rawValue: newValue)
-            self.playerLayer?.videoGravity = self._resizeMode
-            self.setNeedsLayout()
-            print("CHANGED: resizeMode \(newValue)")
-        }
-        get {
-            return nil
-        }
+    self._playerStartTime = convertedValue
+    
+    if convertedValue < 0 {
+      print("WARNING: startTime is a negative number: \(String(describing: startTime))")
+      self._playerStartTime = 0.0
     }
     
-    var playerWidth: NSNumber? {
-        set(val) {
-            if val != nil {
-                self._playerWidth = val as! CGFloat
-                self.frame.size.width = self._playerWidth
-                self.rotate = self._rotate ? 1 : 0
-                print("CHANGED WIDTH \(val)")
-            }
-        }
-        get {
-            return nil
-        }
+    let currentTime = CGFloat(CMTimeGetSeconds(player.currentTime()))
+    var shouldBeCurrentTime: CGFloat = currentTime;
+    
+    if self._playerStartTime > currentTime {
+      shouldBeCurrentTime = self._playerStartTime
     }
     
+    if player != nil {
+      player.seek(
+        to: convertToCMTime(val: shouldBeCurrentTime),
+        toleranceBefore: convertToCMTime(val: self._playerStartTime),
+        toleranceAfter: convertToCMTime(val: self._playerEndTime)
+      )
+    }
+    print("CHANGED startTime \(String(describing: startTime))")
+  }
+  
+  @objc(setEndTime:)
+  public func setEndTime(_ endTime: NSNumber?) {
+    if endTime == nil {
+      return
+    }
+    let convertedValue = endTime as! CGFloat
     
-    // props
-    var source: NSString? {
-        set(val) {
-            if val != nil {
-                self._moviePathSource = val!
-                print("CHANGED source \(val)")
-                if self.gpuMovie != nil {
-                    self.gpuMovie.endProcessing()
-                }
-                self.startPlayer()
-            }
-        }
-        get {
-            return nil
-        }
+    self._playerEndTime = convertedValue
+    
+    if convertedValue < 0.0 {
+      print("WARNING: endTime is a negative number: \(String(describing: endTime))")
+      self._playerEndTime = CGFloat(CMTimeGetSeconds((player.currentItem?.asset.duration)!))
     }
     
-    // props
-    var currentTime: NSNumber? {
-        set(val) {
-            if val != nil && player != nil {
-                let convertedValue = val as! CGFloat
-                let floatVal = convertedValue >= 0 ? convertedValue : self._playerStartTime
-                print("CHANGED: currentTime \(floatVal)")
-                if floatVal <= self._playerEndTime && floatVal >= self._playerStartTime {
-                    self.player.seek(to: convertToCMTime(val: floatVal), toleranceBefore: .zero, toleranceAfter: .zero)
-                }
-            }
-        }
-        get {
-            return nil
-        }
+    let currentTime = CGFloat(CMTimeGetSeconds(player.currentTime()))
+    var shouldBeCurrentTime: CGFloat = currentTime;
+    
+    if self._playerEndTime < currentTime {
+      shouldBeCurrentTime = self._playerStartTime
     }
     
-    // props
-    var startTime: NSNumber? {
-        set(val) {
-            if val == nil {
-                return
-            }
-            let convertedValue = val as! CGFloat
-            
-            self._playerStartTime = convertedValue
-            
-            if convertedValue < 0 {
-                print("WARNING: startTime is a negative number: \(val)")
-                self._playerStartTime = 0.0
-            }
-            
-            let currentTime = CGFloat(CMTimeGetSeconds(player.currentTime()))
-            var shouldBeCurrentTime: CGFloat = currentTime;
-            
-            if self._playerStartTime > currentTime {
-                shouldBeCurrentTime = self._playerStartTime
-            }
-            
-            if player != nil {
-                player.seek(
-                    to: convertToCMTime(val: shouldBeCurrentTime),
-                    toleranceBefore: convertToCMTime(val: self._playerStartTime),
-                    toleranceAfter: convertToCMTime(val: self._playerEndTime)
-                )
-            }
-            print("CHANGED startTime \(val)")
+    if player != nil {
+      player.seek(
+        to: convertToCMTime(val: shouldBeCurrentTime),
+        toleranceBefore: convertToCMTime(val: self._playerStartTime),
+        toleranceAfter: convertToCMTime(val: self._playerEndTime)
+      )
+    }
+    print("CHANGED endTime \(String(describing: endTime))")
+  }
+  
+  @objc(setPlay:)
+  public func setPlay(_ play: NSNumber?) {
+    if play == nil || player == nil {
+      return
+    }
+    print("CHANGED play \(String(describing: play))")
+    if play == 1 && player.rate == 0.0 {
+      player.play()
+    } else if play == 0 && player.rate != 0.0 {
+      player.pause()
+    }
+  }
+  
+  @objc(setReplay:)
+  public func setReplay(_ replay: NSNumber?) {
+    if replay != nil  {
+      self._replay = RCTConvert.bool(replay!)
+    }
+  }
+  
+  @objc(setRotate:)
+  public func setRotate(_ rotate: NSNumber?) {
+    if rotate != nil {
+      self._rotate = RCTConvert.bool(rotate)
+      var rotationAngle: CGFloat = 0
+      if self._rotate {
+        filterView.frame.size.width = self._playerHeight
+        filterView.frame.size.height = self._playerWidth
+        filterView.bounds.size.width = self._playerHeight
+        filterView.bounds.size.height = self._playerWidth
+        rotationAngle = CGFloat.pi / 2
+      } else {
+        filterView.frame.size.width = self._playerWidth
+        filterView.frame.size.height = self._playerHeight
+        filterView.bounds.size.width = self._playerWidth
+        filterView.bounds.size.height = self._playerHeight
+      }
+      filterView.frame.origin = CGPoint.zero
+      self.filterView.transform = CGAffineTransform(rotationAngle: rotationAngle)
+      playerLayer?.frame = filterView.bounds
+      self.setNeedsLayout()
+      self.layoutIfNeeded()
+    }
+  }
+  
+    @objc(setVolume:)
+    public func setVolume(_ volume: NSNumber?) {
+        let minValue: NSNumber = 0
+      
+        if volume == nil {
+            return
         }
-        get {
-            return nil
+      
+        if (volume!.floatValue) < minValue.floatValue {
+            return
+        }
+      
+      self.playerVolume = volume!
+        if player != nil {
+            player.volume = self.playerVolume.floatValue
         }
     }
-    
-    // props
-    var endTime: NSNumber? {
-        set(val) {
-            if val == nil {
-                return
-            }
-            let convertedValue = val as! CGFloat
-            
-            self._playerEndTime = convertedValue
-            
-            if convertedValue < 0.0 {
-                print("WARNING: endTime is a negative number: \(val)")
-                self._playerEndTime = CGFloat(CMTimeGetSeconds((player.currentItem?.asset.duration)!))
-            }
-            
-            let currentTime = CGFloat(CMTimeGetSeconds(player.currentTime()))
-            var shouldBeCurrentTime: CGFloat = currentTime;
-            
-            if self._playerEndTime < currentTime {
-                shouldBeCurrentTime = self._playerStartTime
-            }
-            
-            if player != nil {
-                player.seek(
-                    to: convertToCMTime(val: shouldBeCurrentTime),
-                    toleranceBefore: convertToCMTime(val: self._playerStartTime),
-                    toleranceAfter: convertToCMTime(val: self._playerEndTime)
-                )
-            }
-            print("CHANGED endTime \(val)")
-        }
-        get {
-            return nil
-        }
-    }
-    
-    var play: NSNumber? {
-        set(val) {
-            if val == nil || player == nil {
-                return
-            }
-            print("CHANGED play \(val)")
-            if val == 1 && player.rate == 0.0 {
-                player.play()
-            } else if val == 0 && player.rate != 0.0 {
-                player.pause()
-            }
-        }
-        get {
-            return nil
-        }
-    }
-    
-    var replay: NSNumber? {
-        set(val) {
-            if val != nil  {
-                self._replay = RCTConvert.bool(val!)
-            }
-        }
-        get {
-            return nil
-        }
-    }
-    
-    var rotate: NSNumber? {
-        set(val) {
-            if val != nil {
-                self._rotate = RCTConvert.bool(val!)
-                var rotationAngle: CGFloat = 0
-                if self._rotate {
-                    filterView.frame.size.width = self._playerHeight
-                    filterView.frame.size.height = self._playerWidth
-                    filterView.bounds.size.width = self._playerHeight
-                    filterView.bounds.size.height = self._playerWidth
-                    rotationAngle = CGFloat.pi / 2
-                } else {
-                    filterView.frame.size.width = self._playerWidth
-                    filterView.frame.size.height = self._playerHeight
-                    filterView.bounds.size.width = self._playerWidth
-                    filterView.bounds.size.height = self._playerHeight
-                }
-                filterView.frame.origin = CGPoint.zero
-                self.filterView.transform = CGAffineTransform(rotationAngle: rotationAngle)
-                playerLayer?.frame = filterView.bounds
-                self.setNeedsLayout()
-                self.layoutIfNeeded()
-            }
-        }
-        get {
-            return nil
-        }
-    }
-    
-    var volume: NSNumber? {
-        set(val) {
-            let minValue: NSNumber = 0
-            
-            if val == nil {
-                return
-            }
-            if (val?.floatValue)! < minValue.floatValue {
-                return
-            }
-            self.playerVolume = val!
-            if player != nil {
-                player.volume = self.playerVolume.floatValue
-            }
-        }
-        get {
-            return nil
-        }
-    }
-    
+  
     func generatePreviewImages() -> Void {
         let hueFilter = self.processingFilters.getFilterByName(name: "hue")
         gpuMovie.removeAllTargets()
@@ -343,21 +293,26 @@ class RNVideoPlayer: RCTView {
             using: {(_ time: CMTime) -> Void in
                 let currentTime = CGFloat(CMTimeGetSeconds(time))
                 self.onVideoCurrentTimeChange(currentTime: currentTime)
-                if currentTime >= self._playerEndTime {
+                if round(currentTime) >= round(self._playerEndTime) {
                     if self._replay {
                         return self.replayMovie()
                     }
-                    self.play = 0
                 }
-        }
+            }
         )
     }
     
     func replayMovie() {
         if player != nil {
+            print("Finished? Replay :)", self._playerStartTime)
             self.player.seek(to: convertToCMTime(val: self._playerStartTime))
             self.player.play()
         }
+    }
+  
+    @objc(setOnChange:)
+    public func setOnChange(_ onChange: @escaping RCTBubblingEventBlock) {
+      self.onChange = onChange
     }
     
     func onVideoCurrentTimeChange(currentTime: CGFloat) {
@@ -377,7 +332,7 @@ class RNVideoPlayer: RCTView {
             player = AVPlayer()
             player.volume = playerVolume.floatValue
         }
-        playerItem = AVPlayerItem(url: movieURL as! URL)
+        playerItem = AVPlayerItem(url: movieURL! as URL)
         player.replaceCurrentItem(with: playerItem)
         
         // MARK - Temporary removing playeLayer, it dublicates video if it's in landscape mode
@@ -388,7 +343,7 @@ class RNVideoPlayer: RCTView {
         //        playerLayer!.removeFromSuperlayer()
         //        filterView.layer.addSublayer(playerLayer!)
         
-        print("CHANGED playerframe \(playerLayer), frameAAA \(playerLayer?.frame)")
+        print("CHANGED playerframe \(String(describing: playerLayer)), frameAAA \(String(describing: playerLayer?.frame))")
         self.setNeedsLayout()
         
         self._playerEndTime = CGFloat(CMTimeGetSeconds((player.currentItem?.asset.duration)!))

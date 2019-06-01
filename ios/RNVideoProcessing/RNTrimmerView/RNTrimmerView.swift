@@ -66,140 +66,246 @@ class RNTrimmerView: RCTView, ICGVideoTrimmerDelegate {
             return nil
         }
     }
-    
-    var showTrackerHandle: NSNumber? {
-        set {
-            if newValue == nil {
-                return
-            }
-            let _nVal = newValue! == 1 ? true : false
-            if _showTrackerHandle != _nVal {
-                print("CHANGED: showTrackerHandle \(newValue!)");
-                _showTrackerHandle = _nVal
-                self.updateView()
-            }
-        }
-        get {
-            return nil
-        }
+  
+//    var source: NSString? {
+//        set {
+//            setSource(source: newValue)
+//        }
+//        get {
+//
+//            return nil
+//        }
+//    }
+  
+    @objc(setShowTrackerHandle:)
+    public func setShowTrackerHandle(_ showTrackerHandle: NSNumber?) {
+      if showTrackerHandle == nil {
+        return
+      }
+      let _nVal = showTrackerHandle! == 1 ? true : false
+      if _showTrackerHandle != _nVal {
+        print("CHANGED: showTrackerHandle \(showTrackerHandle!)");
+        _showTrackerHandle = _nVal
+        self.updateView()
+      }
     }
-    
-    var trackerHandleColor: NSString? {
-        set {
-            if newValue != nil {
-                let color = NumberFormatter().number(from: newValue! as String)
-                let formattedColor = RCTConvert.uiColor(color)
-                if formattedColor != nil {
-                    print("CHANGED: trackerHandleColor: \(newValue!)")
-                    self._trackerHandleColor = formattedColor!
-                    self.updateView();
-                }
-            }
+  
+//    var showTrackerHandle: NSNumber? {
+//        set {
+//            if newValue == nil {
+//                return
+//            }
+//            let _nVal = newValue! == 1 ? true : false
+//            if _showTrackerHandle != _nVal {
+//                print("CHANGED: showTrackerHandle \(newValue!)");
+//                _showTrackerHandle = _nVal
+//                self.updateView()
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setTrackerHandleColor:)
+    public func setTrackerHandleColor(_ trackerHandleColor: NSString?) {
+      if trackerHandleColor != nil {
+        let color = NumberFormatter().number(from: trackerHandleColor! as String)
+        let formattedColor = RCTConvert.uiColor(color)
+        if formattedColor != nil {
+          print("CHANGED: trackerHandleColor: \(trackerHandleColor!)")
+          self._trackerHandleColor = formattedColor!
+          self.updateView();
         }
-        get {
-            return nil
-        }
+      }
     }
-    
-    var height: NSNumber? {
-        set {
-            self.rect.size.height = RCTConvert.cgFloat(newValue) + 40
-            self.updateView()
-        }
-        get {
-            return nil
-        }
+//    var trackerHandleColor: NSString? {
+//        set {
+//            if newValue != nil {
+//                let color = NumberFormatter().number(from: newValue! as String)
+//                let formattedColor = RCTConvert.uiColor(color)
+//                if formattedColor != nil {
+//                    print("CHANGED: trackerHandleColor: \(newValue!)")
+//                    self._trackerHandleColor = formattedColor!
+//                    self.updateView();
+//                }
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setHeight:)
+    public func setHeight(_ height: NSNumber?) {
+      self.rect.size.height = RCTConvert.cgFloat(height) + 40
+      self.updateView()
     }
-    
-    var width: NSNumber? {
-        set {
-            self.rect.size.width = RCTConvert.cgFloat(newValue)
-            self.updateView()
-        }
-        get {
-            return nil
-        }
+//    var height: NSNumber? {
+//        set {
+//            self.rect.size.height = RCTConvert.cgFloat(newValue) + 40
+//            self.updateView()
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setWidth:)
+    public func setWidth(_ width: NSNumber?) {
+      self.rect.size.width = RCTConvert.cgFloat(width)
+      self.updateView()
     }
-    
-    var themeColor: NSString? {
-        set {
-            if newValue != nil {
-                let color = NumberFormatter().number(from: newValue! as String)
-                self.mThemeColor = RCTConvert.uiColor(color)
-                self.updateView()
-            }
-        }
-        get {
-            return nil
-        }
+//    var width: NSNumber? {
+//        set {
+//            self.rect.size.width = RCTConvert.cgFloat(newValue)
+//            self.updateView()
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setThemeColor:)
+    public func setThemeColor(_ themeColor: NSString?) {
+      if themeColor != nil {
+        let color = NumberFormatter().number(from: themeColor! as String)
+        self.mThemeColor = RCTConvert.uiColor(color)
+        self.updateView()
+      }
     }
-    
-    var maxLength: NSNumber? {
-        set {
-            if newValue != nil {
-                self._maxLength = RCTConvert.cgFloat(newValue!)
-                self.updateView()
-            }
-        }
-        get {
-            return nil
-        }
+//    var themeColor: NSString? {
+//        set {
+//            if newValue != nil {
+//                let color = NumberFormatter().number(from: newValue! as String)
+//                self.mThemeColor = RCTConvert.uiColor(color)
+//                self.updateView()
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setMaxLength:)
+    public func setMaxLength(_ maxLength: NSNumber?) {
+      if maxLength != nil {
+        self._maxLength = RCTConvert.cgFloat(maxLength!)
+        self.updateView()
+      }
     }
-    
-    var minLength: NSNumber? {
-        set {
-            if newValue != nil {
-                self._minLength = RCTConvert.cgFloat(newValue!)
-                self.updateView()
-            }
-        }
-        get {
-            return nil
-        }
+//    var maxLength: NSNumber? {
+//        set {
+//            if newValue != nil {
+//                self._maxLength = RCTConvert.cgFloat(newValue!)
+//                self.updateView()
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setMinLength:)
+    public func setMinLength(_ minLength: NSNumber?) {
+      if minLength != nil {
+        self._maxLength = RCTConvert.cgFloat(minLength!)
+        self.updateView()
+      }
     }
-    
-    var thumbWidth: NSNumber? {
-        set {
-            if newValue != nil {
-                self._thumbWidth = RCTConvert.cgFloat(newValue!)
-                self.updateView()
-            }
-        }
-        get {
-            return nil
-        }
+//    var minLength: NSNumber? {
+//        set {
+//            if newValue != nil {
+//                self._minLength = RCTConvert.cgFloat(newValue!)
+//                self.updateView()
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setThumbWidth:)
+    public func setThumbWidth(_ thumbWidth: NSNumber?) {
+      if thumbWidth != nil {
+        self._thumbWidth = RCTConvert.cgFloat(thumbWidth!)
+        self.updateView()
+      }
     }
-    
-    var currentTime: NSNumber? {
-        set {
-            print("CHANGED: [TrimmerView]: currentTime: \(newValue)")
-            if newValue != nil && self.trimmerView != nil {
-                let convertedValue = newValue as! CGFloat
-                self.trimmerView?.seek(toTime: convertedValue)
-                //        self.trimmerView
-            }
-        }
-        get {
-            return nil
-        }
+//    var thumbWidth: NSNumber? {
+//        set {
+//            if newValue != nil {
+//                self._thumbWidth = RCTConvert.cgFloat(newValue!)
+//                self.updateView()
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setCurrentTime:)
+    public func setCurrentTime(_ currentTime: NSNumber?) {
+      print("CHANGED: [TrimmerView]: currentTime: \(String(describing: currentTime))")
+      if currentTime != nil && self.trimmerView != nil {
+        let convertedValue = currentTime as! CGFloat
+        self.trimmerView?.seek(toTime: convertedValue)
+        //        self.trimmerView
+      }
     }
-    
-    var trackerColor: NSString? {
-        set {
-            if newValue == nil {
-                return
-            }
-            print("CHANGED: trackerColor \(newValue!)")
-            let color = NumberFormatter().number(from: newValue! as String)
-            let formattedColor = RCTConvert.uiColor(color)
-            if formattedColor != nil {
-                self._trackerColor = formattedColor!
-                self.updateView()
-            }
-        }
-        get {
-            return nil
-        }
+//    var currentTime: NSNumber? {
+//        set {
+//            print("CHANGED: [TrimmerView]: currentTime: \(newValue)")
+//            if newValue != nil && self.trimmerView != nil {
+//                let convertedValue = newValue as! CGFloat
+//                self.trimmerView?.seek(toTime: convertedValue)
+//                //        self.trimmerView
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setTrackerColor:)
+    public func setTrackerColor(_ trackerColor: NSString?) {
+      if trackerColor == nil {
+        return
+      }
+      print("CHANGED: trackerColor \(trackerColor!)")
+      let color = NumberFormatter().number(from: trackerColor! as String)
+      let formattedColor = RCTConvert.uiColor(color)
+      if formattedColor != nil {
+        self._trackerColor = formattedColor!
+        self.updateView()
+      }
+    }
+//    var trackerColor: NSString? {
+//        set {
+//            if newValue == nil {
+//                return
+//            }
+//            print("CHANGED: trackerColor \(newValue!)")
+//            let color = NumberFormatter().number(from: newValue! as String)
+//            let formattedColor = RCTConvert.uiColor(color)
+//            if formattedColor != nil {
+//                self._trackerColor = formattedColor!
+//                self.updateView()
+//            }
+//        }
+//        get {
+//            return nil
+//        }
+//    }
+  
+    @objc(setOnChange:)
+    public func setOnChange(_ onChange: @escaping RCTBubblingEventBlock) {
+      self.onChange = onChange
+    }
+  
+    @objc(setOnTrackerMove:)
+    public func setOnTrackerMove(_ onTrackerMove: @escaping RCTBubblingEventBlock) {
+      self.onTrackerMove = onTrackerMove
     }
     
     func updateView() {
