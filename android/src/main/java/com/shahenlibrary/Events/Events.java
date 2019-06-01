@@ -7,7 +7,6 @@ public class Events {
     public static final String DURATION = "duration";
     public static final String GET_MEDIA_INFO = "getInfo";
     public static final String TRIM_MEDIA = "trim";
-    public static final String CONVERT_MP4 = "convertToMP4";
     public static final String COMPRESS_MEDIA = "compress";
     public static final String GET_PREVIEW_IMAGE = "getPreviewForSecond";
     public static final String ERROR_TRIM = "error";
